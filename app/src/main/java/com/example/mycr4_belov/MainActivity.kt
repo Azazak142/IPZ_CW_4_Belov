@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -143,11 +145,11 @@ fun App() {
     var selectedTask by remember { mutableStateOf<Task?>(null) }
 
     val tasks = remember {
-        listOf(
+        mutableStateOf( listOf(
             Task(1, "Task 1", TaskStatus.ACTIVE, "Task 1 Description", Date()),
             Task(2, "Task 2", TaskStatus.DONE, "Task 2 Description", Date()),
             Task(3, "Task 3", TaskStatus.ACTIVE, "Task 3 Description", Date())
-        )
+        ))
     }
 
     selectedTask?.let { task ->
@@ -155,10 +157,11 @@ fun App() {
             task = task,
             onTaskStatusChange = { newStatus ->
                 Log.d("App", "Task ${task.id} status changed to $newStatus")
+                tasks.value = tasks.value.map { if (it.id == task.id) it.copy(status = newStatus) else it }
                 selectedTask = task.copy(status = newStatus) },
             onBackClick = { selectedTask = null }
         )
-    } ?: TaskListScreen(tasks = tasks) { task ->
+    } ?: TaskListScreen(tasks = tasks.value) { task ->
         Log.d("App", "Clicked on task: ${task.id}")
         selectedTask = task
     }
